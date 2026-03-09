@@ -4,7 +4,7 @@ DPDPAgent — an LLM-powered agent to assess website compliance with India's DPD
 
 from __future__ import annotations
 
-from zak.core.runtime.agent import AgentContext, AgentResult
+from zak.core.runtime.agent import AgentContext
 from zak.core.runtime.llm_agent import LLMAgent
 from zak.core.runtime.registry import register_agent
 from zak.agents.compliance import website_tools
