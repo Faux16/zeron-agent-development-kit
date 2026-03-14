@@ -224,7 +224,24 @@ def run(path: str, tenant: str, env: str, meta: list[str]) -> None:
         sys.exit(0)
 
     try:
-        agent_cls = registry_instance.resolve(domain)
+        # When multiple agents share a domain, disambiguate by matching
+        # the YAML file's parent package against the agent's module path.
+        all_regs = registry_instance.resolve_all(domain)
+        if len(all_regs) > 1:
+            yaml_parent = str(yaml_path_obj.parent)
+            agent_cls = None
+            for reg in all_regs:
+                # Convert module path (zak.agents.slopsquatting.agent) to
+                # filesystem segments and check if the YAML sits in that package.
+                mod_parts = reg.module.rsplit(".", 1)[0]  # drop '.agent'
+                mod_dir = mod_parts.replace(".", "/")
+                if yaml_parent.endswith(mod_dir):
+                    agent_cls = reg.agent_class
+                    break
+            if agent_cls is None:
+                agent_cls = registry_instance.resolve(domain)
+        else:
+            agent_cls = registry_instance.resolve(domain)
     except EditionError as exc:
         console.print(Panel(
             f"[bold red]{exc}[/bold red]\n\n"
